@@ -1,4 +1,3 @@
-
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Repository } from 'typeorm';
@@ -7,8 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BadRequestException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { title } from 'process';
-import e from 'express';
+
 
 @Injectable()
 export class ProductsService {
@@ -73,9 +71,9 @@ export class ProductsService {
   async update(id: string, updateProductDto: UpdateProductDto) {
     try {
       const product = await this.productRepository.preload({ id, ...updateProductDto });
-      return this.productRepository.save(product);
+      return await this.productRepository.save(product);
+
     } catch (error) {
-      console.log(error);
       if (error.code === '22P02') {
         throw new NotFoundException();
       }
