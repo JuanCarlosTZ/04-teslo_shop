@@ -3,8 +3,13 @@ import { ProductsModule } from './products/products.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
+import { AppConfiguration } from './common/configuration/app.configuration';
+import { appValidationSchemaJoi } from './common/dto/app_validation_schema_joi.dto';
 
-const configModule = ConfigModule.forRoot();
+const configModule = ConfigModule.forRoot({
+  load: [AppConfiguration.envConfig],
+  validationSchema: appValidationSchemaJoi
+});
 
 const typeormModule = TypeOrmModule.forRoot({
   type: 'postgres',
@@ -17,13 +22,14 @@ const typeormModule = TypeOrmModule.forRoot({
   synchronize: true,
 });
 
+
+
 @Module({
   imports: [
     configModule,
     typeormModule,
     ProductsModule,
     CommonModule,
-
   ]
 })
 export class AppModule { }

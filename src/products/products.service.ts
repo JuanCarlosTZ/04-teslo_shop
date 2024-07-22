@@ -6,13 +6,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BadRequestException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
 export class ProductsService {
+  private readonly defaultLimit = this.serviceConfig.get('defaultPaginationLimit');
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly serviceConfig: ConfigService,
   ) { }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
@@ -27,7 +30,7 @@ export class ProductsService {
 
   async findAll(paginatoinDto: PaginationDto): Promise<Product[]> {
     try {
-      const { limit = 0, offset = 0 } = paginatoinDto;
+      const { limit = this.defaultLimit, offset = 0 } = paginatoinDto;
       const products = await this.productRepository.find({
         take: limit,
         skip: offset,
