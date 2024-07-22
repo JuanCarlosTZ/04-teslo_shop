@@ -11,13 +11,15 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ProductsService {
-  private readonly defaultLimit = this.serviceConfig.get('defaultPaginationLimit');
+  private readonly defaultLimit: number;
   private readonly logger = new Logger('ProductsService');
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly serviceConfig: ConfigService,
-  ) { }
+  ) {
+    this.defaultLimit = this.serviceConfig.get<number>('defaultPaginationLimit');
+  }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
     try {
