@@ -3,7 +3,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BadRequestException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class ProductsService {
   private readonly defaultLimit = this.serviceConfig.get('defaultPaginationLimit');
+  private readonly logger = new Logger('ProductsService');
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -38,8 +39,7 @@ export class ProductsService {
       });
       return products;
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(error);
+      this.handelException(error);
     }
   }
 
@@ -91,12 +91,12 @@ export class ProductsService {
         if (affected <= 0) throw new NotFoundException(`Product not found with id "${id}"`);
       }
     } catch (error) {
+      this.logger.error(error);
       this.handelException(error);
     }
   }
 
   handelException(error) {
-    console.log(error)
 
     if (error.code === '23505') {
       throw new BadRequestException(error.detail);
@@ -114,6 +114,7 @@ export class ProductsService {
       throw error;
     }
 
+    this.logger.error(error);
     throw new InternalServerErrorException('Unespected error. Check server logs.');
   }
 }
