@@ -18,3 +18,8 @@ docker-compose up -d
 ```
 yarn start:dev
 ```
+
+7. Levantar datos de desarrollo, ejecutar SEED
+```
+get(): http://localhost:3000/api/seed
+```

@@ -164,6 +164,16 @@ export class ProductsService {
     }
   }
 
+
+  async removeAll(): Promise<void> {
+    try {
+      await this.productRepository.delete({});
+    } catch (error) {
+      this.logger.error(error);
+      this.handelException(error);
+    }
+  }
+
   handelException(error) {
 
     if (error.code === '23505') {
