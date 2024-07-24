@@ -26,7 +26,7 @@ export class CreateProductDto {
     @IsOptional()
     @IsNumber()
     @IsPositive()
-    price: number;
+    price?: number;
 
     @IsIn(['men', 'women', 'kid', 'unisex'])
     gender: string;
@@ -34,6 +34,11 @@ export class CreateProductDto {
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
-    tags: string[];
+    tags?: string[];
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    images?: string[];
 
 }
