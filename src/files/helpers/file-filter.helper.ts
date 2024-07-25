@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
 import { AppConfiguration } from "src/common/configuration/app.configuration";
 import { AppConfig } from "src/common/interfaces/env-config.interface";
 

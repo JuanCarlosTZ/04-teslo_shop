@@ -1,6 +1,7 @@
-import { ConfigService } from "@nestjs/config";
 import { AppConfig } from "../interfaces/env-config.interface";
+import { Injectable } from "@nestjs/common";
 
+@Injectable()
 export class AppConfiguration {
     static envConfig = () => ({
         dbName: process.env.DB_NAME,
@@ -13,7 +14,6 @@ export class AppConfiguration {
     });
 
     appConfig(): AppConfig {
-
         return {
             dbName: AppConfiguration.envConfig().dbName,
             dbUsername: AppConfiguration.envConfig().dbUsername,
