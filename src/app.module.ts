@@ -6,6 +6,7 @@ import { CommonModule } from './common/common.module';
 import { AppConfiguration } from './common/configuration/app.configuration';
 import { appValidationSchemaJoi } from './common/dto/app_validation_schema_joi.dto';
 import { SeedModule } from './seed/seed.module';
+import { FilesModule } from './files/files.module';
 
 const configModule = ConfigModule.forRoot({
   load: [AppConfiguration.envConfig],
@@ -30,6 +31,7 @@ const typeormModule = TypeOrmModule.forRoot({
     ProductsModule,
     CommonModule,
     SeedModule,
+    FilesModule,
   ]
 })
 export class AppModule { }
