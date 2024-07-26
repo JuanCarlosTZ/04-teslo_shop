@@ -3,18 +3,19 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { DataSource, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BadRequestException, HttpStatus, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
 import { ProductImage } from './entities/product_image.entity';
 import { ResultProduct } from './dto/result-product.dto';
+import { HandlerHelper } from 'src/common/helpers/handle-exception.helper';
 
 
 @Injectable()
 export class ProductsService {
   private readonly defaultLimit: number;
-  private readonly logger = new Logger('ProductsService');
+  private readonly context: 'ProductsService';
 
   constructor(
     @InjectRepository(Product)
@@ -27,13 +28,15 @@ export class ProductsService {
 
     private readonly serviceConfig: ConfigService,
 
+    private readonly handler: HandlerHelper,
+
   ) {
     this.defaultLimit = this.serviceConfig.get<number>('defaultPaginationLimit');
 
   }
 
   async create(createProductDto: CreateProductDto): Promise<ResultProduct> {
-    try {
+    return await this.handler.exception(this.context, async () => {
       const images: ProductImage[] = createProductDto.images.map((image) => {
         return this.productImageRepository.create({ url: image });
       });
@@ -43,15 +46,12 @@ export class ProductsService {
       product = await this.productRepository.save(product);
 
       return this.getResultProduct(product);
+    });
 
-    } catch (error) {
-      this.handelException(error);
-
-    }
   }
 
   async findAll(paginatoinDto: PaginationDto): Promise<ResultProduct[]> {
-    try {
+    return await this.handler.exception(this.context, async () => {
       const { limit = this.defaultLimit, offset = 0 } = paginatoinDto;
       const products = await this.productRepository.find({
         take: limit,
@@ -62,11 +62,8 @@ export class ProductsService {
       });
 
       return products.map(product => this.getResultProduct(product));
+    });
 
-    } catch (error) {
-      this.handelException(error);
-
-    }
   }
 
   async findOne(term: string): Promise<ResultProduct> {
@@ -81,7 +78,7 @@ export class ProductsService {
 
   async findOneProduct(term: string): Promise<Product> {
     let product: Product = null;
-    try {
+    await this.handler.exception(this.context, async () => {
       if (isUUID(term)) {
         product = await this.productRepository.findOneBy({ id: term });
       } else {
@@ -95,9 +92,8 @@ export class ProductsService {
           .leftJoinAndSelect('prod.images', 'prod_images')
           .getOne();
       }
-    } catch (error) {
-      this.handelException(error);
-    }
+    });
+
     if (!product) {
       throw new NotFoundException(`Not exists a product by term "${term}"`);
     }
@@ -108,91 +104,71 @@ export class ProductsService {
   async update(id: string, updateProductDto: UpdateProductDto): Promise<ResultProduct> {
     const queryRunner = this.datasource.createQueryRunner();
 
-    try {
-      console.log();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
+    return await this.handler.exception(
+      this.context,
+      async () => {
+        console.log();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-      const { images, ...toUpdateProductDto } = updateProductDto;
+        const { images, ...toUpdateProductDto } = updateProductDto;
 
-      const updateProduct = await this.productRepository.preload({
-        id,
-        ...toUpdateProductDto
-      });
-
-
-      if (images) {
-        console.log('if images');
-        await queryRunner.manager.delete(ProductImage, { product: id });
-        updateProduct.images = images.map(image => {
-          return this.productImageRepository.create({ url: image });
+        const updateProduct = await this.productRepository.preload({
+          id,
+          ...toUpdateProductDto
         });
+
+
+        if (images) {
+          console.log('if images');
+          await queryRunner.manager.delete(ProductImage, { product: id });
+          updateProduct.images = images.map(image => {
+            return this.productImageRepository.create({ url: image });
+          });
+        }
+
+        let product = await queryRunner.manager.save(updateProduct);
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+
+        if (!images) {
+          //return product with old images included
+          product = await this.findOneProduct(id);
+        }
+
+        return this.getResultProduct(product);
+
+      },
+      async (error) => {
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release()
+
+        if (error.code === '22P02') {
+          throw new NotFoundException();
+        }
+
       }
+    );
 
-      let product = await queryRunner.manager.save(updateProduct);
-      await queryRunner.commitTransaction();
-      await queryRunner.release();
 
-      if (!images) {
-        //return product with old images included
-        product = await this.findOneProduct(id);
-      }
-
-      return this.getResultProduct(product);
-
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      await queryRunner.release()
-
-      if (error.code === '22P02') {
-        throw new NotFoundException();
-      }
-
-      this.handelException(error);
-    }
   }
 
   async remove(id: string): Promise<void> {
-    try {
+    return await this.handler.exception(this.context, async () => {
       if (isUUID(id)) {
         const { affected } = await this.productRepository.delete({ id });
         if (affected <= 0) throw new NotFoundException(`Product not found with id "${id}"`);
       }
-    } catch (error) {
-      this.logger.error(error);
-      this.handelException(error);
-    }
+    });
+
   }
 
 
   async removeAll(): Promise<void> {
-    try {
+    return await this.handler.exception(this.context, async () => {
       await this.productRepository.delete({});
-    } catch (error) {
-      this.logger.error(error);
-      this.handelException(error);
-    }
+    });
   }
 
-  handelException(error) {
 
-    if (error.code === '23505') {
-      throw new BadRequestException(error.detail);
-    }
-
-    if (error.code === '22P02') {
-      throw new BadRequestException(`Not exists a product by submmited id`);
-    }
-
-    if (error.status == HttpStatus.BAD_REQUEST) {
-      throw error;
-    }
-
-    if (error.status == HttpStatus.NOT_FOUND) {
-      throw error;
-    }
-
-    this.logger.error(error);
-    throw new InternalServerErrorException('Unespected error. Check server logs.');
-  }
 }
