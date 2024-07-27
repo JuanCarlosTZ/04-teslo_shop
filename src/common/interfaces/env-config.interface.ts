@@ -6,4 +6,6 @@ export interface AppConfig {
     imageExtensions: string[],
     defaultPaginationLimit: number,
     port: number,
+    jwtSecret: string,
+
 }

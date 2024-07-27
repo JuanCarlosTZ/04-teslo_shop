@@ -11,6 +11,7 @@ export class AppConfiguration {
         imageExtensions: process.env.IMAGE_EXTENSIONS,
         defaultPaginationLimit: +process.env.DEFAULT_PAGINATION_LIMIT,
         port: +process.env.PORT,
+        jwtSecret: process.env.JWT_SECRET,
     });
 
     appConfig(): AppConfig {
@@ -22,6 +23,7 @@ export class AppConfiguration {
             imageExtensions: AppConfiguration.envConfig().imageExtensions.split(','),
             defaultPaginationLimit: AppConfiguration.envConfig().defaultPaginationLimit,
             port: AppConfiguration.envConfig().port,
+            jwtSecret: AppConfiguration.envConfig().jwtSecret,
         }
     }
 

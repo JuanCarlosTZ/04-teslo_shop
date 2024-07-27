@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+
 import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('Users')
@@ -11,7 +11,9 @@ export class User {
     })
     email: string;
 
-    @Column('text')
+    @Column('text', {
+        select: false
+    })
     password: string;
 
     @Column('text')
@@ -31,8 +33,7 @@ export class User {
     @BeforeInsert()
     @BeforeUpdate()
     formatData() {
-        this.fullname = this.fullname.toLocaleLowerCase().trim();
-        this.email = this.email.trim();
+        this.email = this.email.toLowerCase().trim();
     }
 
 }
