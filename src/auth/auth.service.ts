@@ -86,4 +86,10 @@ export class AuthService {
     });
   }
 
+  async removeAllUsers(): Promise<void> {
+    await this.handler.exception<User>(this.context, async () => {
+      await this.userRepository.delete({});
+    });
+  }
+
 }

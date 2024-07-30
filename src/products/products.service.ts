@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { ProductImage } from './entities/product_image.entity';
 import { ResultProduct } from './dto/result-product.dto';
 import { HandlerHelper } from 'src/common/helpers/handle-exception.helper';
+import { User } from 'src/auth/entities/user.entity';
 
 
 @Injectable()
@@ -35,13 +36,13 @@ export class ProductsService {
 
   }
 
-  async create(createProductDto: CreateProductDto): Promise<ResultProduct> {
+  async create(createProductDto: CreateProductDto, user: User): Promise<ResultProduct> {
     return await this.handler.exception(this.context, async () => {
       const images: ProductImage[] = createProductDto.images.map((image) => {
         return this.productImageRepository.create({ url: image });
       });
 
-      const toCreateProductDto = { ...createProductDto, images: images };
+      const toCreateProductDto = { ...createProductDto, user, images: images };
       let product: Product = this.productRepository.create(toCreateProductDto);
       product = await this.productRepository.save(product);
 
@@ -101,7 +102,7 @@ export class ProductsService {
   }
 
 
-  async update(id: string, updateProductDto: UpdateProductDto): Promise<ResultProduct> {
+  async update(id: string, updateProductDto: UpdateProductDto, user: User): Promise<ResultProduct> {
     const queryRunner = this.datasource.createQueryRunner();
 
     return await this.handler.exception(
@@ -115,7 +116,8 @@ export class ProductsService {
 
         const updateProduct = await this.productRepository.preload({
           id,
-          ...toUpdateProductDto
+          ...toUpdateProductDto,
+          user
         });
 
 

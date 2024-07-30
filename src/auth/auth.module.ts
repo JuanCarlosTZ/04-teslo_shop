@@ -29,6 +29,6 @@ const jwtModuleRegisterAsync = JwtModule.registerAsync({
     jwtModuleRegisterAsync,
     CommonModule
   ],
-  exports: [TypeOrmModule, PassportModule, JwtModule, JwtStrategy]
+  exports: [AuthService, TypeOrmModule, PassportModule, JwtModule, JwtStrategy]
 })
 export class AuthModule { }

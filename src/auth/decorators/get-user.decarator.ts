@@ -1,5 +1,4 @@
 import { createParamDecorator, ExecutionContext, InternalServerErrorException } from "@nestjs/common";
-import { IsArray, IsString } from "class-validator";
 
 export const GetUser = createParamDecorator(
     (data, ctx: ExecutionContext) => {
