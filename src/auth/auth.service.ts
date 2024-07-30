@@ -39,30 +39,48 @@ export class AuthService {
   }
 
   async login(loginUserDto: LoginUserDto) {
-    console.log(`loginUserDto: ${loginUserDto}`);
-
     const { email, password } = loginUserDto;
-
     const user = await this.userRepository.findOne({
       where: { email },
       select: { id: true, fullname: true, email: true, password: true }
     });
 
-    console.log(`user: ${user}`);
-
     if (!user) throw new UnauthorizedException(`Credentials are not valid (mail)`);
-
     const isValidPassword = bcrypt.compareSync(password, user.password);
-
     if (!isValidPassword) throw new UnauthorizedException(`Credentials are not valid (password)`);
-
-
 
     const jwtPayload = this.getJwtPayload(user);
     const accessToken = this.getAccessJwt(jwtPayload)
 
-    return { email: user.email, accessToken: accessToken };
+    return {
+      email: user.email,
+      accessToken: accessToken
+    };
   }
+
+  checkStatus(user: User) {
+    const jwtPayload = this.getJwtPayload(user);
+    const accessToken = this.getAccessJwt(jwtPayload)
+
+    return {
+      email: user.email,
+      accessToken: accessToken
+    };
+  }
+
+  async findAllUsers() {
+    return await this.handler.exception<User>(this.context, async () => {
+      const users = await this.userRepository.find();
+      return users;
+    });
+  }
+
+  async removeAllUsers(): Promise<void> {
+    await this.handler.exception<User>(this.context, async () => {
+      await this.userRepository.delete({});
+    });
+  }
+
 
   private getAccessJwt(payload: JwtPayload) {
     const accessToken = this.jwtService.sign(payload);
@@ -78,18 +96,5 @@ export class AuthService {
     return jwtPayload;
   }
 
-
-  async findAllUsers() {
-    return await this.handler.exception<User>(this.context, async () => {
-      const users = await this.userRepository.find();
-      return users;
-    });
-  }
-
-  async removeAllUsers(): Promise<void> {
-    await this.handler.exception<User>(this.context, async () => {
-      await this.userRepository.delete({});
-    });
-  }
 
 }

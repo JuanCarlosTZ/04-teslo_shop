@@ -17,12 +17,16 @@ export class AuthController {
     return this.authService.create(createAuthDto);
   }
 
-
   @Post('login')
   login(@Body() loginAuthDto: LoginUserDto) {
     return this.authService.login(loginAuthDto);
   }
 
+  @Get('check-status')
+  @Auth()
+  checkStatus(@GetUser() user) {
+    return this.authService.checkStatus(user);
+  }
 
   @Get('users')
   @Auth(ValidRoles.admin)
