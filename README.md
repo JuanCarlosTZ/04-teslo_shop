@@ -23,3 +23,9 @@ yarn start:dev
 ```
 get(): http://localhost:3000/api/seed
 ```
+
+# Test
+## Documentacion de la api
+```
+http://localhost:3000/api
+```

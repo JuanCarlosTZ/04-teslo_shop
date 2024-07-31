@@ -74,7 +74,8 @@ export class ProductsService {
   }
 
   getResultProduct(product: Product): ResultProduct {
-    return { ...product, images: product.images?.map(image => image.url) }
+    const result: ResultProduct = { ...product, images: product.images?.map(image => image.url) };
+    return result;
   }
 
   async findOneProduct(term: string): Promise<Product> {
