@@ -8,6 +8,7 @@ import { appValidationSchemaJoi } from './common/dto/app_validation_schema_joi.d
 import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
+import { MessageWsModule } from './message-ws/message-ws.module';
 
 const configModule = ConfigModule.forRoot({
   load: [AppConfiguration.envConfig],
@@ -34,6 +35,7 @@ const typeormModule = TypeOrmModule.forRoot({
     SeedModule,
     FilesModule,
     AuthModule,
+    MessageWsModule,
   ]
 })
 export class AppModule { }
