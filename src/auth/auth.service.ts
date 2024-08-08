@@ -82,6 +82,27 @@ export class AuthService {
   }
 
 
+  async checkJwtPayload(payload: JwtPayload): Promise<User> {
+    const { userId } = payload;
+    const user = await this.userRepository.findOneBy({ id: userId });
+
+    if (!user) throw new UnauthorizedException('Token not valid');
+    if (!user.isActive) throw new UnauthorizedException('User lock, contact with an admin');
+
+    return user;
+  }
+
+  checkAccessToken(accessToken: string): JwtPayload {
+    try {
+      const jwtPayload = this.jwtService.verify(accessToken)
+      return jwtPayload;
+    }
+    catch (err) {
+      throw new UnauthorizedException(`Access token is not valid`);
+    }
+
+  }
+
   private getAccessJwt(payload: JwtPayload) {
     const accessToken = this.jwtService.sign(payload);
     return accessToken;
